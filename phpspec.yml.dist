@@ -1,0 +1,12 @@
+suites:
+    ns_suite:
+        namespace: NestedSet
+        psr4_prefix: NestedSet
+        spec_path: specs
+        spec_prefix: Spec
+        src_path: lib
+
+extensions:
+    - PhpSpec\NyanFormattersExtension\Extension
+
+formatter.name: nyan.cat
