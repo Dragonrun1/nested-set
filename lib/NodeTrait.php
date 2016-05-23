@@ -63,20 +63,6 @@ trait NodeTrait
         return $this;
     }
     /**
-     * Used to get a list(array) of the node's ancestors.
-     *
-     * NOTE: This method will only return the immediate ancestor of the node by default. To get any additional levels of
-     * the ancestors $levelsAbove value > maximum levels above but not more then PHP_INT_MAX should be used.
-     *
-     * @param int    $levelsAbove Determines how many ancestor level(s) above should be included relative to the node.
-     * @param string $sort        Determines sorting of the ancestor list. Value is case insensitive.
-     *                            'asc' (ascending): From root node to immediate ancestor.
-     *                            'desc' (descending): From immediate ancestor to root node.
-     *
-     * @return NodeInterface[] Returns array of ancestor node(s). Root node will return empty array.
-     */
-    abstract public function getAncestorList($levelsAbove = 1, $sort = 'asc');
-    /**
      * Use to get count of descendant nodes.
      *
      * NOTE: This method will only return a count of the direct descendants from the node by default and NOT any
@@ -174,24 +160,13 @@ trait NodeTrait
         }
     }
     /**
-     * Check if node has any ancestor(s).
-     *
-     * @return bool Normally only a root node will return false.
-     */
-    public function hasAncestors()
-    {
-        return (bool)$this->getAncestorList();
-    }
-    /**
      * Check if node has any descendant(s).
      *
      * @return bool
-     * @throws \LogicException Throws exception if left or right properties are accessed before values are set.
-     * @throws \RangeException Throws exception if node's left or right values are out of range.
      */
     public function hasDescendants()
     {
-        return ($this->getRight() - $this->getLeft()) > 1;
+        return (bool)$this->getDescendantCount();
     }
     /**
      * Sets nested set left value.
@@ -201,13 +176,13 @@ trait NodeTrait
      * @return self Fluent interface.
      * @throws \DomainException Throws exception if $value > PHP_INT_MAX - 1.
      */
-    protected function setLeft($value) {
+    public function setLeft($value) {
         $value = (int)$value;
         if (PHP_INT_MAX === $value) {
             $mess = 'Left value can not equal PHP_INT_MAX';
             throw new \DomainException($mess);
         }
-        $this->left = (int)$value;
+        $this->left = $value;
         return $this;
     }
     /**

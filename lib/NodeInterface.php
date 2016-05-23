@@ -27,20 +27,6 @@ interface NodeInterface
      */
     public function addDescendantByPosition(NodeInterface $node, $value = 'last');
     /**
-     * Used to get a list(array) of the node's ancestors.
-     *
-     * NOTE: This method will only return the immediate ancestor of the node by default. To get any additional levels of
-     * the ancestors $levelsAbove > maximum levels above but not more then PHP_INT_MAX should be used.
-     *
-     * @param int    $levelsAbove Determines how many ancestor level(s) above should be included relative to the node.
-     * @param string $sort        Determines sorting of the ancestor list. Value is case insensitive.
-     *                            'asc' (ascending): From root node to immediate ancestor.
-     *                            'desc' (descending): From immediate ancestor to root node.
-     *
-     * @return NodeInterface[] Returns array of ancestor node(s). Root node will return empty array.
-     */
-    public function getAncestorList($levelsAbove = 1, $sort = 'asc');
-    /**
      * Use to get count of descendant nodes.
      *
      * NOTE: This method will only return a count of the direct descendants from the node by default and NOT any
@@ -52,21 +38,6 @@ interface NodeInterface
      * @return int Returns number of descendant nodes.
      */
     public function getDescendantCount($levelsBelow = 1);
-    /**
-     * Used to get a list(array) of the node's descendants.
-     *
-     * NOTE: This method will only return a list of the direct descendants from the node by default and NOT any
-     * additional levels of descendants. If you need all the descendants of a node whether or not they have intervening
-     * ancestors you MUST set $levelsBelow > maximum levels below but not more than PHP_INT_MAX.
-     *
-     * @param int    $levelsBelow Determines how many levels of descendants relative to the node should be included.
-     * @param string $sort        Determines sorting of the descendant list. Value is case insensitive.
-     *                            'asc' (ascending): From first to last descendant.
-     *                            'desc' (descending): From last to first descendant.
-     *
-     * @return NodeInterface[] Returns array of descendant node(s). Will return empty array if node has no descendants.
-     */
-    public function getDescendantList($levelsBelow = 1, $sort = 'asc');
     /**
      * Retrieve node's nested set left value.
      *
@@ -80,32 +51,23 @@ interface NodeInterface
      */
     public function getLevel();
     /**
+     * Retrieve node's payload value.
+     *
+     * @return mixed
+     */
+    public function getPayload();
+    /**
      * Retrieve node's nested set right value.
      *
      * @return int
      */
     public function getRight();
     /**
-     * Check if node has any ancestor(s).
-     *
-     * @return bool Normally only a root node will return false.
-     */
-    public function hasAncestors();
-    /**
      * Check if node has any descendant(s).
      *
      * @return bool
      */
     public function hasDescendants();
-    /**
-     * Remove an existing descendant node referenced by it's left value.
-     *
-     * @param int $value Use left nested set value to find descendant.
-     *
-     * @return NodeInterface Returns the removed descendant node.
-     * @throws \DomainException Throws exception if $value isn't an existing descendant node.
-     */
-    public function removeDescendantByLeft($value);
     /**
      * Remove an existing descendant node referenced by it's position.
      *
@@ -117,4 +79,30 @@ interface NodeInterface
      * @throws \DomainException Throws exception if an existing descendant node doesn't exist for the $value position.
      */
     public function removeDescendantByPosition($value);
+    /**
+     * Sets descendents list.
+     *
+     * @param NodeInterface[] $value Array of NodeInterfaces.
+     *
+     * @return self Fluent interface.
+     * @throws \DomainException Throws exception if any of the values are NOT NodeInterfaces.
+     */
+     public function setDescendants(array $value = []);
+    /**
+     * Sets nested set left value.
+     *
+     * @param int $value Value for left.
+     *
+     * @return self Fluent interface.
+     * @throws \DomainException Throws exception if $value > PHP_INT_MAX - 1.
+     */
+    public function setLeft($value);
+    /**
+     * Sets payload value.
+     *
+     * @param mixed $value Value of the payload that this NodeInterface is for.
+     *
+     * @return self Fluent interface.
+     */
+     public function setPayload($value);
 }
