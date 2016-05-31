@@ -3,7 +3,7 @@
     "description": "PHP implementation of nested set.",
     "autoload": {
         "psr-4": {
-            "NestSet\\": [
+            "NestedSet\\": [
                 "lib/"
             ]
         }

@@ -30,7 +30,7 @@
  * @author    Michael Cummings <mgcummings@yahoo.com>
  * @since 0.0.1
  */
-namespace NestSet;
+namespace NestedSet;
 
 /**
  * Class Node
