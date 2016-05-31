@@ -1,6 +1,6 @@
 <?php
 /**
- * Contains interface NestedSetInterface.
+ * Contains trait NestedSetTrait.
  *
  * PHP version 5.5
  *
@@ -33,10 +33,11 @@
 namespace NestSet;
 
 /**
- * Interface NestedSetInterface
+ * Class NestedSetTrait
  */
-interface NestedSetInterface extends NodeInterface
+trait NestedSetTrait
 {
+    use NodeTrait;
     /**
      * Add a new descendant node to an existing node.
      *
@@ -49,27 +50,34 @@ interface NestedSetInterface extends NodeInterface
      *
      * @return self Fluent interface.
      */
-    public function addDescendantToNode(NodeInterface $descendant, NodeInterface $ancestor = null, $position = 'last');
-    public function getAncestor();
+    public function addDescendantToNode(NodeInterface $descendant, NodeInterface $ancestor = null, $position = 'last')
+    {
+        if (null === $ancestor) {
+            $ancestor = $this->getRoot();
+        }
+        $ancestor->addDescendant($descendant, $position);
+    }
     /**
-     * Used to get a list(array) of the node's ancestors.
-     *
-     * NOTE: This method will only return the immediate ancestor of the node by default. To get any additional levels of
-     * the ancestors $levelsAbove > maximum levels above but not more then PHP_INT_MAX should be used.
-     *
-     * @param int    $levelsAbove Determines how many ancestor level(s) above should be included relative to the node.
-     * @param string $sort        Determines sorting of the ancestor list. Value is case insensitive.
-     *                            'asc' (ascending): From root node to immediate ancestor.
-     *                            'desc' (descending): From immediate ancestor to root node.
-     *
-     * @return NodeInterface[] Returns array of ancestor node(s). Root node will return empty array.
+     * @return NodeInterface
      */
-    public function getAncestorList($levelsAbove = 1, $sort = 'asc');
-    public function getAncestors();
+    public function getRoot()
+    {
+        return $this->root;
+    }
     /**
-     * Check if node has any ancestor(s).
+     * @param NodeInterface $root
      *
-     * @return bool Normally only a root node will return false.
+     * @return self Fluent interface.
      */
-    public function hasAncestors();
+    public function setRoot(NodeInterface $root)
+    {
+        $this->root = $root;
+        return $this;
+    }
+    /**
+     * Root node for NestedSet.
+     *
+     * @var NodeInterface $root
+     */
+    private $root;
 }

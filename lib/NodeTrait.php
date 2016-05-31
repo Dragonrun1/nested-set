@@ -1,9 +1,34 @@
 <?php
 /**
- * Created by PhpStorm.
- * User: mgcum
- * Date: 3/27/2016
- * Time: 10:26 AM
+ * Contains trait NodeTrait.
+ *
+ * PHP version 5.5
+ *
+ * LICENSE:
+ * This file is part of the Nested-Set library.
+ * Copyright (C) 2016 Michael Cummings
+ *
+ * This program is free software: you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by the
+ * Free Software Foundation, either version 3 of the License, or (at your
+ * option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program. If not, see
+ * <http://www.gnu.org/licenses/>.
+ *
+ * You should be able to find a copy of this license in the LICENSE.md file. A
+ * copy of the GNU GPL should also be available in the GNU-GPL.md file.
+ *
+ * @copyright 2016 Michael Cummings
+ * @license   LGPL-3.0+
+ * @author    Michael Cummings <mgcummings@yahoo.com>
+ * @since 0.0.1
  */
 namespace NestSet;
 
@@ -17,81 +42,68 @@ trait NodeTrait
     /**
      * Add a new direct descendant node to the current node.
      *
-     * NOTE: If integer $value >= descendant count then it will act like 'last' would.
-     *
-     * @param NodeInterface $node  New descendant node to be added.
-     * @param int|string    $value Relative position in descendant list with negative integers counting from last
-     *                             position. Integer value MUST BE between PHP_INT_MIN and PHP_INT_MAX. The case
-     *                             insensitive string value MUST BE 'first' or 'last' which causes the new descendant
-     *                             node to take over the corresponding position.
+     * @param NodeInterface $node     New descendant node to be added.
+     * @param string        $position Relative position in descendant list. The case insensitive string value which MUST
+     *                                BE either 'first' or 'last' which causes the new descendant node to be added in
+     *                                the corresponding position in the list.
      *
      * @return self Fluent interface.
-     * @throws \DomainException Throws exception if case insensitive string $value is not equal to 'last' or 'first'.
-     * @throws \InvalidArgumentException Throws exception if $value is not a string or integer.
+     * @throws \DomainException
+     * @throws \InvalidArgumentException
+     * @throws \LogicException
+     * @throws \RangeException
+     * @api
      */
-    public function addDescendantByPosition(NodeInterface $node, $value = 'last')
+    public function addDescendant(NodeInterface $node, $position = 'last')
     {
-        if (is_string($value)) {
-            $value = strtolower($value);
-            if (!in_array($value, ['first', 'last'], true)) {
-                $mess = sprintf('Unknown string value %1$s given for position', $value);
-                throw new \DomainException($mess);
-            }
-            if ('last' === $value) {
-                $value = PHP_INT_MAX;
-            } elseif ('first' === $value) {
-                $value = 0;
-            }
+        $position = $this->validatePosition($position);
+        if ('first' === $position) {
+            array_unshift($this->descendants, $node);
+        } else {
+            $this->descendants[] = $node;
         }
-        if (!is_int($value)) {
-            $mess = sprintf('Expected string or int but was given %1$s', gettype($value));
-            throw new \InvalidArgumentException($mess);
-        }
-        $cnt = $this->getDescendantCount();
-        if (0 === $cnt) {
-            $this->descendants = [$node];
-            return $this;
-        }
-        if (abs($value) > $cnt) {
-            // preserves sign of value while keeping it in range of length.
-            $value = min(1, max(-1, $value)) * $cnt;
-        }
-        // Insert
-        array_splice($this->descendants, $value, 0, [$node]);
-        // Re-index.
-        $this->descendants = array_values($this->descendants);
+        self::isAutoNest() && $this->updatedNesting($this->getLeft(), $this->getLevel());
         return $this;
+    }
+    /**
+     * @return boolean
+     * @api
+     */
+    public static function isAutoNest()
+    {
+        return self::$autoNest;
+    }
+    /**
+     * @param boolean $value
+     * @api
+     */
+    public static function setAutoNest($value)
+    {
+        self::$autoNest = (bool)$value;
     }
     /**
      * Use to get count of descendant nodes.
      *
-     * NOTE: This method will only return a count of the direct descendants from the node by default and NOT any
-     * additional levels of descendants. If you need all the descendants of a node whether or not they have intervening
-     * ancestors you MUST set $levelsBelow > maximum levels below but not more than PHP_INT_MAX.
-     *
-     * @param int $levelsBelow
-     *
      * @return int Returns number of descendant nodes.
+     * @api
      */
-    public function getDescendantCount($levelsBelow = 1)
+    public function getDescendantCount()
     {
-        return count($this->getDescendantList($levelsBelow));
+        return count($this->getDescendants());
     }
     /**
      * Used to get a list(array) of the node's descendants.
      *
-     * NOTE: This method will only return a list of the direct descendants from the node by default and NOT any
-     * additional levels of descendants. If you need all the descendants of a node whether or not they have intervening
-     * ancestors you MUST set $levelsBelow > maximum levels below but not more then PHP_INT_MAX should be used.
-     *
-     * @param int    $levelsBelow Determines how many levels of descendants relative to the node should be included.
-     * @param string $sort        Determines sorting of the descendant list. Value is case insensitive.
-     *                            'asc' (ascending): From first to last descendant.
-     *                            'desc' (descending): From last to first descendant.
-     *
      * @return NodeInterface[] Returns array of descendant node(s). Will return empty array if node has no descendants.
+     * @api
      */
-    abstract public function getDescendantList($levelsBelow = 1, $sort = 'asc');
+    public function getDescendants()
+    {
+        if (null === $this->descendants) {
+            return [];
+        }
+        return $this->descendants;
+    }
     /**
      * Retrieve node's nested set left value.
      *
@@ -99,6 +111,7 @@ trait NodeTrait
      * @throws \LogicException Throws exception if property accessed before value is set.
      * @throws \RangeException Throws exception if value not between PHP_INT_MIN and PHP_INT_MAX - 1 inclusively,
      * or value >= right value.
+     * @api
      */
     public function getLeft()
     {
@@ -123,6 +136,7 @@ trait NodeTrait
      * @return int
      * @throws \LogicException Throws exception if property accessed before value is set.
      * @throws \RangeException Throws exception if value not between PHP_INT_MIN and PHP_INT_MAX inclusively.
+     * @api
      */
     public function getLevel()
     {
@@ -143,6 +157,7 @@ trait NodeTrait
      * @return int
      * @throws \LogicException Throws exception if property accessed before value is set.
      * @throws \RangeException Throws exception if value <= left or value > PHP_INT_MAX.
+     * @api
      */
     public function getRight()
     {
@@ -163,10 +178,47 @@ trait NodeTrait
      * Check if node has any descendant(s).
      *
      * @return bool
+     * @api
      */
     public function hasDescendants()
     {
         return (bool)$this->getDescendantCount();
+    }
+    /**
+     * Remove an existing descendant node referenced by it's position.
+     *
+     * @param string $position Relative position in descendant list. The case insensitive string value MUST BE 'first'
+     *                         or 'last' which causes the existing descendant node to be removed from the corresponding
+     *                         position.
+     *
+     * @return NodeInterface|null Returns the removed descendant node or NULL if nothing is removed.
+     * @throws \DomainException
+     * @throws \InvalidArgumentException
+     * @throws \LogicException
+     * @throws \RangeException
+     * @api
+     */
+    public function removeDescendant($position = 'last')
+    {
+        $position = $this->validatePosition($position);
+        if ('first' === $position) {
+            $result = array_shift($this->descendants);
+        } else {
+            $result = array_pop($this->descendants);
+        }
+        self::isAutoNest() && $this->updatedNesting($this->getLeft(), $this->getLevel());
+        return $result;
+    }
+    /**
+     * @param NodeInterface[] $nodes
+     *
+     * @return self Fluent interface.
+     * @api
+     */
+    public function setDescendants($nodes)
+    {
+        $this->descendants = $nodes;
+        return $this;
     }
     /**
      * Sets nested set left value.
@@ -174,33 +226,132 @@ trait NodeTrait
      * @param int $value Value for left.
      *
      * @return self Fluent interface.
+     * @throws \RangeException
+     * @throws \LogicException
      * @throws \DomainException Throws exception if $value > PHP_INT_MAX - 1.
+     * @api
      */
-    public function setLeft($value) {
+    public function setLeft($value = 0)
+    {
         $value = (int)$value;
         if (PHP_INT_MAX === $value) {
             $mess = 'Left value can not equal PHP_INT_MAX';
             throw new \DomainException($mess);
         }
         $this->left = $value;
+        if (self::isAutoNest()) {
+            if ($this->hasDescendants()) {
+                foreach ($this->getDescendants() as $descendant) {
+                    $value = $descendant->setLeft(++$value)
+                                        ->getRight();
+                }
+            }
+            $this->setRight(++$value);
+        }
         return $this;
     }
     /**
+     * @param int $value
+     *
+     * @return self Fluent interface.
+     * @api
+     */
+    public function setLevel($value)
+    {
+        $this->level = $value;
+        if (self::isAutoNest() && $this->hasDescendants()) {
+            ++$value;
+            foreach ($this->getDescendants() as $descendant) {
+                $descendant->setLevel($value);
+            }
+        }
+        return $this;
+    }
+    /**
+     * @param int $value
+     *
+     * @return self Fluent interface.
+     * @api
+     */
+    public function setRight($value)
+    {
+        $this->right = $value;
+        return $this;
+    }
+    /**
+     * Bulk update a node and any descendant(s) left, level, and right values.
+     *
+     * Mainly expected to be used when NodeInterface::isAutoNest() === false to manually update the nesting values of a
+     * node and all of it's descendant(s).
+     *
+     * @param int $index New nested set index value used for left and right.
+     * @param int $level New nested set level value.
+     *
+     * @return self Fluent interface.
+     * @throws \RangeException
+     * @throws \LogicException
+     * @throws \DomainException
+     * @api
+     */
+    public function updatedNesting($index = 0, $level = 0)
+    {
+        $this->setLeft($index)
+             ->setLevel($level);
+        if ($this->hasDescendants()) {
+            ++$level;
+            foreach ($this->getDescendants() as $descendant) {
+                $index = $descendant->updatedNesting(++$index, $level)
+                                    ->getRight();
+            }
+        }
+        return $this->setRight(++$index);
+    }
+    /**
+     * @param $position
+     *
+     * @return string
+     * @throws \DomainException
+     * @throws \InvalidArgumentException
+     */
+    protected function validatePosition($position)
+    {
+        if (!is_string($position)) {
+            $mess = sprintf('Expected position to a string but was given %1$s instead', gettype($position));
+            throw new \InvalidArgumentException($mess);
+        }
+        $position = strtolower($position);
+        if (!in_array($position, ['first', 'last'], true)) {
+            $mess = sprintf('Unknown string value %1$s given for position', $position);
+            throw new \DomainException($mess);
+        }
+        return $position;
+    }
+    /**
+     * Determines if methods like setLeft(), setLevel() should automatically update descendants as well.
+     *
+     * Should be false by default to allow for lazy loading and to ensure large and multiple descendant tree additions
+     * to not cause processing spikes.
+     *
+     *
+     * @var bool $autoNest
+     */
+    protected static $autoNest = false;
+    /**
      * List(array) of descendant nodes.
      *
-     * @type NodeInterface[] $descendants
+     * @var NodeInterface[] $descendants
      */
     private $descendants = [];
     /**
-     * @type int $left Node's nested set left value.
+     * @var int $left Node's nested set left value.
      */
-    protected $left;
+    private $left;
     /**
-     * @type int $level Node's nested set level value.
+     * @var int $level Node's nested set level value.
      */
-    protected $level;
+    private $level;
     /**
-     * @type int $right Node's nested set right value.
+     * @var int $right Node's nested set right value.
      */
-    protected $right;
+    private $right;
 }
