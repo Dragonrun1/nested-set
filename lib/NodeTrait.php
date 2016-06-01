@@ -28,7 +28,7 @@
  * @copyright 2016 Michael Cummings
  * @license   LGPL-3.0+
  * @author    Michael Cummings <mgcummings@yahoo.com>
- * @since 0.0.1
+ * @since     0.0.1
  */
 namespace NestedSet;
 
@@ -39,6 +39,23 @@ namespace NestedSet;
  */
 trait NodeTrait
 {
+    /**
+     * @return boolean
+     * @api
+     */
+    public static function isAutoNest()
+    {
+        return self::$autoNest;
+    }
+    /**
+     * @param boolean $value
+     *
+     * @api
+     */
+    public static function setAutoNest($value = false)
+    {
+        self::$autoNest = (bool)$value;
+    }
     /**
      * Add a new direct descendant node to the current node.
      *
@@ -64,22 +81,6 @@ trait NodeTrait
         }
         self::isAutoNest() && $this->updatedNesting($this->getLeft(), $this->getLevel());
         return $this;
-    }
-    /**
-     * @return boolean
-     * @api
-     */
-    public static function isAutoNest()
-    {
-        return self::$autoNest;
-    }
-    /**
-     * @param boolean $value
-     * @api
-     */
-    public static function setAutoNest($value = false)
-    {
-        self::$autoNest = (bool)$value;
     }
     /**
      * Use to get count of descendant nodes.
@@ -217,7 +218,7 @@ trait NodeTrait
      */
     public function setDescendants(array $value = [])
     {
-        $this->descendants = $value;
+        $this->descendants = array_values($value);
         return $this;
     }
     /**
