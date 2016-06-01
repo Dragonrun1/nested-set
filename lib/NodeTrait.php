@@ -77,7 +77,7 @@ trait NodeTrait
      * @param boolean $value
      * @api
      */
-    public static function setAutoNest($value)
+    public static function setAutoNest($value = false)
     {
         self::$autoNest = (bool)$value;
     }
@@ -210,14 +210,14 @@ trait NodeTrait
         return $result;
     }
     /**
-     * @param NodeInterface[] $nodes
+     * @param NodeInterface[] $value
      *
      * @return self Fluent interface.
      * @api
      */
-    public function setDescendants($nodes)
+    public function setDescendants(array $value = [])
     {
-        $this->descendants = $nodes;
+        $this->descendants = $value;
         return $this;
     }
     /**
@@ -256,8 +256,9 @@ trait NodeTrait
      * @return self Fluent interface.
      * @api
      */
-    public function setLevel($value)
+    public function setLevel($value = 0)
     {
+        $value = (int)$value;
         $this->level = $value;
         if (self::isAutoNest() && $this->hasDescendants()) {
             ++$value;
@@ -273,8 +274,9 @@ trait NodeTrait
      * @return self Fluent interface.
      * @api
      */
-    public function setRight($value)
+    public function setRight($value = 1)
     {
+        $value = (int)$value;
         $this->right = $value;
         return $this;
     }

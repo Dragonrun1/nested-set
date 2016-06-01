@@ -138,7 +138,7 @@ interface NodeInterface
      * @throws \DomainException Throws exception if $value > PHP_INT_MAX - 1.
      * @api
      */
-    public function setLeft($value);
+    public function setLeft($value = 0);
     /**
      * Sets nested set level value.
      *
@@ -149,7 +149,7 @@ interface NodeInterface
      * @return self Fluent interface.
      * @api
      */
-    public function setLevel($value);
+    public function setLevel($value = 0);
     /**
      * Sets nested set right value.
      *
@@ -158,7 +158,7 @@ interface NodeInterface
      * @return self Fluent interface.
      * @api
      */
-    public function setRight($value);
+    public function setRight($value = 1);
     /**
      * Bulk update a node and any descendant(s) left, level, and right values.
      *
