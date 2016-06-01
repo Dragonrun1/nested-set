@@ -249,11 +249,17 @@ trait NodeTrait
      * @param int $value
      *
      * @return self Fluent interface.
+     * @throws \DomainException Throws exception if new value is <= current left value.
+     * @throws \LogicException
      * @api
      */
     public function setRight($value = 1)
     {
         $value = (int)$value;
+        if ($value <= $this->getLeft()) {
+            $mess = 'Right value must be greater than left value';
+            throw new \DomainException($mess);
+        }
         $this->right = $value;
         return $this;
     }
