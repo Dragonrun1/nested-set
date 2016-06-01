@@ -110,8 +110,6 @@ trait NodeTrait
      *
      * @return int
      * @throws \LogicException Throws exception if property accessed before value is set.
-     * @throws \RangeException Throws exception if value not between PHP_INT_MIN and PHP_INT_MAX - 1 inclusively,
-     * or value >= right value.
      * @api
      */
     public function getLeft()
@@ -120,15 +118,6 @@ trait NodeTrait
             $mess = 'Tried to use property before value was set';
             throw new \LogicException($mess);
         }
-        if ($this->left < ~PHP_INT_MAX || $this->left > (PHP_INT_MAX - 1)) {
-            $mess = sprintf('Node left value of %1$s is not between PHP_INT_MIN and PHP_INT_MAX - 1 inclusively',
-                $this->left);
-            throw new \RangeException($mess);
-        }
-        if ($this->left >= $this->getRight()) {
-            $mess = 'Left can NOT be >= right value';
-            throw new \RangeException($mess);
-        }
         return $this->left;
     }
     /**
@@ -136,7 +125,6 @@ trait NodeTrait
      *
      * @return int
      * @throws \LogicException Throws exception if property accessed before value is set.
-     * @throws \RangeException Throws exception if value not between PHP_INT_MIN and PHP_INT_MAX inclusively.
      * @api
      */
     public function getLevel()
@@ -144,11 +132,6 @@ trait NodeTrait
         if (null === $this->level) {
             $mess = 'Tried to use property before value was set';
             throw new \LogicException($mess);
-        }
-        if ($this->level < ~PHP_INT_MAX || $this->level > PHP_INT_MAX) {
-            $mess = sprintf('Node level value of %1$s is not between PHP_INT_MIN and PHP_INT_MAX inclusively',
-                $this->level);
-            throw new \RangeException($mess);
         }
         return $this->level;
     }
@@ -166,14 +149,7 @@ trait NodeTrait
             $mess = 'Tried to use property before value was set';
             throw new \LogicException($mess);
         }
-        if ($this->right <= $this->getLeft()) {
-            $mess = 'Right value can not be less than or equal to left value';
-            throw new \RangeException($mess);
-        }
-        if ($this->right > PHP_INT_MAX) {
-            $mess = 'Right value excesses PHP_INT_MAX';
-            throw new \RangeException($mess);
-        }
+        return $this->right;
     }
     /**
      * Check if node has any descendant(s).
