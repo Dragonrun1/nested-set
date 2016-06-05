@@ -29,7 +29,7 @@
  * @license   LGPL-3.0+
  * @author    Michael Cummings <mgcummings@yahoo.com>
  */
-namespace Yapeal;
+namespace NestedSet;
 
 /*
  * Find Composer auto loader after striping away any vendor path.
