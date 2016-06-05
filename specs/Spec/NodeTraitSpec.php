@@ -35,29 +35,35 @@
 namespace Spec\NestedSet;
 
 use PhpSpec\ObjectBehavior;
+use Prophecy\Argument;
 
 /**
  * Class SpecNodeTrait
  *
  * @mixin \NestedSet\Node
  *
- * @method void shouldImplement()
+ *** PhpSpec general methods
+ * @method void shouldImplement($value)
  * @method void shouldReturn($value)
+ *** PhpSpec per spec methods
+ * @method void duringGetLeft()
+ * @method void duringGetLevel()
+ * @method void duringGetRight()
  * @method $this duringSetLeft($value)
+ * @method $this duringSetRight($value)
  */
 class NodeTraitSpec extends ObjectBehavior
 {
-    public function ItReturnsEmptyArrayBeforeDescendantsAreSet()
+    /**
+     *
+     */
+    public function itIsInitializable()
     {
-        $this->getDescendants()
-             ->shouldHaveCount(0);
+        $this->shouldImplement('NestedSet\NodeInterface');
     }
-    public function ItThrowsExceptionForValueEqualsPHP_INT_MAXWhenTryingToSetLeft()
-    {
-        $mess = 'Left value can not equal PHP_INT_MAX';
-        $this->shouldThrow(new \DomainException($mess))
-             ->duringSetLeft(PHP_INT_MAX);
-    }
+    /**
+     *
+     */
     public function itProvidesFluentInterfaceFromAllSetters()
     {
         $this->setDescendants()
@@ -69,8 +75,208 @@ class NodeTraitSpec extends ObjectBehavior
         $this->setRight()
              ->shouldReturn($this);
     }
+    /**
+     *
+     */
+    public function itReturnsEmptyArrayBeforeAnyDescendantsAreAdded()
+    {
+        $this->getDescendants()
+             ->shouldHaveCount(0);
+    }
+    /**
+     * @param \Spec\MockNode $descendant
+     */
+    public function itShouldDuringAddDescendantChangeLeftOfDescendantWhenIsAutoNestIsTrue($descendant)
+    {
+        $this->setLeft(2)
+             ->setLevel()
+             ->setRight(3);
+        $descendant->getRight()
+                   ->willReturn(4);
+        $descendant->setLeft(3)
+                   ->shouldBeCalled();
+        $descendant->setLevel(1)
+                   ->shouldBeCalled();
+        $descendant->getRight()
+                   ->shouldBeCalledTimes(1);
+        self::setAutoNest(true);
+        $this->addDescendant($descendant);
+        self::setAutoNest(false);
+    }
+    /**
+     * @param \Spec\MockNode $descendant
+     */
+    public function itShouldDuringAddDescendantChangeLevelOfDescendantWhenIsAutoNestIsTrue($descendant)
+    {
+        $this->setLeft(2)
+             ->setLevel(2)
+             ->setRight(3);
+        $descendant->getRight()
+                   ->willReturn(4);
+        $descendant->setLeft(3)
+                   ->shouldBeCalled();
+        $descendant->setLevel(3)
+                   ->shouldBeCalled();
+        $descendant->getRight()
+                   ->shouldBeCalledTimes(1);
+        self::setAutoNest(true);
+        $this->addDescendant($descendant);
+        self::setAutoNest(false);
+    }
+    /**
+     * @param \Spec\MockNode $descendant
+     */
+    public function itShouldDuringAddDescendantNotChangeLeftOfDescendantWhenIsAutoNestIsFalse($descendant)
+    {
+        self::setAutoNest(false);
+        $descendant->getRight()
+                   ->shouldNotBeCalled();
+        $descendant->setLeft()
+                   ->shouldNotBeCalled();
+        $this->addDescendant($descendant)
+             ->setLeft(1);
+        $mess = 'Tried to use property before value was set';
+        $this->shouldThrow(new \LogicException($mess))
+             ->duringGetRight();
+    }
+    /**
+     * @param \Spec\MockNode $descendant1
+     * @param \Spec\MockNode $descendant2
+     * @param \Spec\MockNode $descendant3
+     */
+    public function itShouldDuringAddDescendantPutThemInOrderByPositionAndNotAddedOrder(
+        $descendant1,
+        $descendant2,
+        $descendant3
+    ) {
+        self::setAutoNest(false);
+        $this->addDescendant($descendant1);
+        $this->addDescendant($descendant3, 'first');
+        $this->getDescendants()
+             ->shouldReturn([$descendant3, $descendant1]);
+        $this->addDescendant($descendant2, 'last');
+        $this->getDescendants()
+             ->shouldReturn([$descendant3, $descendant1, $descendant2]);
+    }
+    /**
+     * @param \Spec\MockNode $descendant1
+     * @param \Spec\MockNode $descendant2
+     * @param \Spec\MockNode $descendant3
+     */
+    public function itShouldDuringRemoveDescendantRemoveThemFromCorrectEnd($descendant1, $descendant2, $descendant3)
+    {
+        self::setAutoNest(false);
+        $this->addDescendant($descendant1);
+        $this->addDescendant($descendant3, 'first');
+        $this->addDescendant($descendant2, 'last');
+        $this->getDescendants()
+             ->shouldReturn([$descendant3, $descendant1, $descendant2]);
+        $this->removeDescendant('first');
+        $this->getDescendants()
+             ->shouldReturn([$descendant1, $descendant2]);
+        $this->removeDescendant('last');
+        $this->getDescendants()
+             ->shouldReturn([$descendant1]);
+    }
+    /**
+     * @param \Spec\MockNode $descendant1
+     * @param \Spec\MockNode $descendant2
+     */
+    public function itShouldDuringSetLeftChangeLeftOfDescendantsWhenIsAutoNestIsTrue($descendant1, $descendant2)
+    {
+        $descendant1->setLeft(3)
+                    ->shouldBeCalled();
+        $descendant1->getRight()
+                    ->willReturn(4);
+        $descendant1->getRight()
+                    ->shouldBeCalledTimes(1);
+        $descendant2->setLeft(5)
+                    ->shouldBeCalled();
+        $descendant2->getRight()
+                    ->willReturn(6);
+        $descendant2->getRight()
+                    ->shouldBeCalledTimes(1);
+        $this->setDescendants([$descendant1, $descendant2]);
+        self::setAutoNest(true);
+        $this->setLeft(2);
+        self::setAutoNest(false);
+    }
+    /**
+     * @param \Spec\MockNode $descendant1
+     * @param \Spec\MockNode $descendant2
+     */
+    public function itShouldDuringSetLeftNotChangeLeftOfDescendantsWhenIsAutoNestIsFalse($descendant1, $descendant2)
+    {
+        self::setAutoNest(false);
+        $descendant1->setLeft()
+                    ->shouldNotBeCalled();
+        $descendant1->getRight()
+                    ->shouldNotBeCalled();
+        $descendant2->setLeft()
+                    ->shouldNotBeCalled();
+        $descendant2->getRight()
+                    ->shouldNotBeCalled();
+        $this->setDescendants([$descendant1, $descendant2]);
+        $this->setLeft(2);
+    }
+    /**
+     * @param \Spec\MockNode $descendant
+     */
+    public function itShouldHaveADescendantAfterAddingOne($descendant)
+    {
+        $this->addDescendant($descendant)
+             ->getDescendants()
+             ->shouldHaveCount(1);
+    }
+    /**
+     * @param \NestedSet\Node $descendant
+     */
+    public function itShouldHaveNoDescendantsAfterRemovingLastOne($descendant)
+    {
+        $this->addDescendant($descendant)
+             ->getDescendants()
+             ->shouldHaveCount(1);
+        $this->removeDescendant();
+        $this->getDescendants()
+             ->shouldHaveCount(0);
+    }
+    /**
+     *
+     */
+    public function itThrowsExceptionForRightValueLessThanOrEqualLeftValueDuringSetRight()
+    {
+        $mess = 'Right value must be greater than left value';
+        $this->setLeft(2);
+        $this->shouldThrow(new \DomainException($mess))
+             ->duringSetRight(1);
+    }
+    /**
+     *
+     */
+    public function itThrowsExceptionForToLargeOfValueWhenTryingToSetLeft()
+    {
+        $mess = 'Left value can not equal PHP_INT_MAX';
+        $this->shouldThrow(new \DomainException($mess))
+             ->duringSetLeft(PHP_INT_MAX);
+    }
+    /**
+     *
+     */
+    public function itThrowsExceptionForUsingGettersBeforeSetters()
+    {
+        $mess = 'Tried to use property before value was set';
+        $this->shouldThrow(new \LogicException($mess))
+             ->duringGetLeft();
+        $this->shouldThrow(new \LogicException($mess))
+             ->duringGetLeft();
+        $this->shouldThrow(new \LogicException($mess))
+             ->duringGetRight();
+    }
+    /**
+     *
+     */
     public function let()
     {
-        $this->beAnInstanceOf('\\Spec\\NestedSet\\MockNodeTrait');
+        $this->beAnInstanceOf('\\Spec\\MockNodeTrait');
     }
 }

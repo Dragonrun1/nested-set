@@ -33,15 +33,13 @@
  * Date: 5/31/2016
  * Time: 4:44 PM
  */
-namespace Spec\NestedSet;
+namespace Spec;
 
 use NestedSet\NodeInterface;
 use NestedSet\NodeTrait;
 
 /**
  * Class MockNodeTrait
- *
- * @package Spec\NestedSet
  */
 class MockNodeTrait implements NodeInterface
 {

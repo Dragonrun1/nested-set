@@ -7,10 +7,12 @@ config/yapeal.ini
 config/yapeal.yaml
 *.log
 .idea/
+build/
 cache/
 docs/
 ext/
 export/
+phpspec.yml
 upload/
 vendor/
 xdebug/

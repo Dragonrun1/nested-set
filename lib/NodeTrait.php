@@ -79,7 +79,9 @@ trait NodeTrait
         } else {
             $this->descendants[] = $node;
         }
-        self::isAutoNest() && $this->updatedNesting($this->getLeft(), $this->getLevel());
+        if (self::isAutoNest()) {
+            $this->updatedNesting($this->getLeft(), $this->getLevel());
+        }
         return $this;
     }
     /**
@@ -183,18 +185,27 @@ trait NodeTrait
         } else {
             $result = array_pop($this->descendants);
         }
-        self::isAutoNest() && $this->updatedNesting($this->getLeft(), $this->getLevel());
+        if (self::isAutoNest()) {
+            $this->updatedNesting($this->getLeft(), $this->getLevel());
+        }
         return $result;
     }
     /**
      * @param NodeInterface[] $value
      *
      * @return self Fluent interface.
+     * @throws \DomainException
+     * @throws \LogicException
+     * @throws \RangeException
      * @api
      */
     public function setDescendants(array $value = [])
     {
-        $this->descendants = array_values($value);
+        $value = array_values($value);
+        $this->descendants = $value;
+        if (self::isAutoNest() && (bool)count($value)) {
+            $this->updatedNesting($this->getLeft(), $this->getLevel());
+        }
         return $this;
     }
     /**
@@ -219,11 +230,12 @@ trait NodeTrait
         if (self::isAutoNest()) {
             if ($this->hasDescendants()) {
                 foreach ($this->getDescendants() as $descendant) {
-                    $value = $descendant->setLeft(++$value)
-                                        ->getRight();
+                    $descendant->setLeft(++$value);
+                    $value = $descendant->getRight();
                 }
             }
-            $this->setRight(++$value);
+            ++$value;
+            $this->setRight($value);
         }
         return $this;
     }
@@ -280,16 +292,12 @@ trait NodeTrait
      */
     public function updatedNesting($index = 0, $level = 0)
     {
-        $this->setLeft($index)
-             ->setLevel($level);
-        if ($this->hasDescendants()) {
-            ++$level;
-            foreach ($this->getDescendants() as $descendant) {
-                $index = $descendant->updatedNesting(++$index, $level)
-                                    ->getRight();
-            }
-        }
-        return $this->setRight(++$index);
+        $isNested = self::isAutoNest();
+        self::setAutoNest(true);
+        $this->setLeft($index);
+        $this->setLevel($level);
+        self::setAutoNest($isNested);
+        return $this;
     }
     /**
      * @param $position
