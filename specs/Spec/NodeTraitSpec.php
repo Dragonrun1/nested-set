@@ -1,36 +1,34 @@
 <?php
 /**
- *  LICENSE:
- *  This file is part of the Nested-Set library.
- *  Copyright (C) 2016 Michael Cummings
+ * Contains class SpecNodeTrait.
  *
- *  This program is free software: you can redistribute it and/or modify it
- *  under the terms of the GNU Lesser General Public License as published by the
- *  Free Software Foundation, either version 3 of the License, or (at your
- *  option) any later version.
+ * PHP version 5.5
  *
- *  This program is distributed in the hope that it will be useful, but WITHOUT
- *  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- *  FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License
- *  for more details.
+ * LICENSE:
+ * This file is part of the Nested-Set library.
+ * Copyright (C) 2016 Michael Cummings
  *
- *  You should have received a copy of the GNU Lesser General Public License
- *  along with this program. If not, see
- *  <http://www.gnu.org/licenses/>.
+ * This program is free software: you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by the
+ * Free Software Foundation, either version 3 of the License, or (at your
+ * option) any later version.
  *
- *  You should be able to find a copy of this license in the LICENSE.md file. A
- *  copy of the GNU GPL should also be available in the GNU-GPL.md file.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program. If not, see
+ * <http://www.gnu.org/licenses/>.
+ *
+ * You should be able to find a copy of this license in the LICENSE.md file. A
+ * copy of the GNU GPL should also be available in the GNU-GPL.md file.
  *
  * @copyright 2016 Michael Cummings
  * @license   LGPL-3.0+
  * @author    Michael Cummings <mgcummings@yahoo.com>
- *
- */
-/**
- * Created by PhpStorm.
- * User: Dragonaire
- * Date: 5/31/2016
- * Time: 4:24 PM
+ * @since     0.0.2
  */
 namespace Spec\NestedSet;
 
@@ -82,6 +80,8 @@ class NodeTraitSpec extends ObjectBehavior
     {
         $this->getDescendants()
              ->shouldHaveCount(0);
+        $this->hasDescendants()
+             ->shouldReturn(false);
     }
     /**
      * @param \Spec\MockNode $descendant
@@ -179,6 +179,18 @@ class NodeTraitSpec extends ObjectBehavior
              ->shouldReturn([$descendant1]);
     }
     /**
+     *
+     */
+    public function itShouldDuringSetLeftActualChangeValue()
+    {
+        $this->setLeft(2);
+        $this->getLeft()
+             ->shouldReturn(2);
+        $this->setLeft(10);
+        $this->getLeft()
+             ->shouldReturn(10);
+    }
+    /**
      * @param \Spec\MockNode $descendant1
      * @param \Spec\MockNode $descendant2
      */
@@ -218,6 +230,31 @@ class NodeTraitSpec extends ObjectBehavior
                     ->shouldNotBeCalled();
         $this->setDescendants([$descendant1, $descendant2]);
         $this->setLeft(2);
+    }
+    /**
+     *
+     */
+    public function itShouldDuringSetLevelActualChangeValue()
+    {
+        $this->setLevel(2);
+        $this->getLevel()
+             ->shouldReturn(2);
+        $this->setLevel(10);
+        $this->getLevel()
+             ->shouldReturn(10);
+    }
+    /**
+     *
+     */
+    public function itShouldDuringSetRightActualChangeValue()
+    {
+        $this->setLeft(1);
+        $this->setRight(2);
+        $this->getRight()
+             ->shouldReturn(2);
+        $this->setRight(10);
+        $this->getRight()
+             ->shouldReturn(10);
     }
     /**
      * @param \Spec\MockNode $descendant

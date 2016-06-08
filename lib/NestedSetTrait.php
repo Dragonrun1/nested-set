@@ -33,7 +33,7 @@
 namespace NestedSet;
 
 /**
- * Class NestedSetTrait
+ * Class NestedSetTrait.
  */
 trait NestedSetTrait
 {
